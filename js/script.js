@@ -4,10 +4,56 @@ const state = {
   currentPage: window.location.pathname,
 };
 
+async function testAPIKey() {
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization:
+        'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5YjI5MDhhODI2YjE2ZTJjN2RmMWVhMTIyMDljY2M3ZCIsInN1YiI6IjY0YTllYTg3ZDFhODkzMDBlMmY4Y2E5MSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.P4gFsWzc7p4OVc5b5GvXKwWe-wLfYDSfIXEjFrTBKbk',
+    },
+  };
+
+  fetchAPIData('authentication', options)
+    .then((response) => console.log(response))
+    .catch((err) => console.error(err));
+}
+
 async function displayPopularMovies() {
   // Destructuring results returns the 'results' array from the data object returned
   const { results } = await fetchAPIData('movie/popular');
-  console.log(results);
+  //   console.log(results);
+
+  results.forEach((movie) => {
+    const movieDiv = document.createElement('div');
+    movieDiv.classList.add('card');
+    movieDiv.innerHTML = `
+     
+          <a href="movie-details.html?id=${movie.id}">
+            ${
+              movie.poster_path
+                ? `<img
+            src="https://image/tmdb.org/t/p/w500${movie.poster_path}"
+            class="card-img-top"
+            alt="${movie.title}"
+          />`
+                : `<img
+          src="../images/no-image.jpg"
+          class="card-img-top"
+          alt="${movie.title}"
+        />`
+            }
+          </a>
+          <div class="card-body">
+            <h5 class="card-title"${movie.title}</h5>
+            <p class="card-text">
+              <small class="text-muted">Release: ${movie.release_date}</small>
+            </p>
+          </div>
+        `;
+
+    document.querySelector('#popular-movies').appendChild(movieDiv);
+  });
 }
 
 // Fetch data from TMDB API
@@ -60,6 +106,7 @@ function init() {
   }
 
   highlightActiveLink();
+  //   testAPIKey();
 }
 
 document.addEventListener('DOMContentLoaded', init);
