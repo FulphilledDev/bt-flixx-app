@@ -75,7 +75,7 @@ async function displayMovieDetails() {
           ${
             movie.poster_path
               ? `<img
-          src="https://image/tmdb.org/t/p/w500${movie.poster_path}"
+          src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
           class="card-img-top"
           alt="${movie.title}"
         />`
@@ -214,7 +214,7 @@ async function displayPopularShows() {
               ${
                 show.poster_path
                   ? `<img
-              src="https://image/tmdb.org/t/p/w500${show.poster_path}"
+              src="https://image.tmdb.org/t/p/w500${show.poster_path}"
               class="card-img-top"
               alt="${show.name}"
             />`
