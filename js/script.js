@@ -19,6 +19,7 @@ async function testAPIKey() {
     .catch((err) => console.error(err));
 }
 
+// Display 20 most popular movies
 async function displayPopularMovies() {
   // Destructuring results returns the 'results' array from the data object returned
   const { results } = await fetchAPIData('movie/popular');
@@ -56,11 +57,53 @@ async function displayPopularMovies() {
   });
 }
 
+// Display 20 popular tv shows
+async function displayPopularShows() {
+  // Destructuring results returns the 'results' array from the data object returned
+  const { results } = await fetchAPIData('tv/popular');
+  //   console.log(results);
+
+  results.forEach((show) => {
+    const showDiv = document.createElement('div');
+    showDiv.classList.add('card');
+    showDiv.innerHTML = `
+       
+            <a href="tv-details.html?id=${show.id}">
+              ${
+                show.poster_path
+                  ? `<img
+              src="https://image/tmdb.org/t/p/w500${show.poster_path}"
+              class="card-img-top"
+              alt="${show.name}"
+            />`
+                  : `<img
+            src="../images/no-image.jpg"
+            class="card-img-top"
+            alt="${show.name}"
+          />`
+              }
+            </a>
+            <div class="card-body">
+              <h5 class="card-title"${show.name}</h5>
+              <p class="card-text">
+                <small class="text-muted">Air Date: ${
+                  show.first_air_date
+                }</small>
+              </p>
+            </div>
+          `;
+
+    document.querySelector('#popular-shows').appendChild(showDiv);
+  });
+}
+
 // Fetch data from TMDB API
 // NOTE: FOR PRODUCTION--> create own backend server and make the request to THAT server where API Key is stored, then request from there to TMDB DB
 async function fetchAPIData(endpoint) {
   const API_KEY = '9b2908a826b16e2c7df1ea12209ccc7d';
   const API_URL = 'https://api.themoviedb.org/3/';
+
+  showSpinner();
 
   const response = await fetch(
     `${API_URL}${endpoint}?api_key=${API_KEY}&language=en-US`
@@ -68,7 +111,17 @@ async function fetchAPIData(endpoint) {
 
   const data = await response.json();
 
+  hideSpinner();
+
   return data;
+}
+
+function showSpinner() {
+  document.querySelector('.spinner').classList.add('show');
+}
+
+function hideSpinner() {
+  document.querySelector('.spinner').classList.remove('show');
 }
 
 // Highlight Active link
@@ -92,7 +145,8 @@ function init() {
       displayPopularMovies();
       break;
     case '/shows.html':
-      console.log('Shows');
+      //   console.log('Shows');
+      displayPopularShows();
       break;
     case '/movie-details.html':
       console.log('Movie Details');
