@@ -1,7 +1,18 @@
 // This script is located in the head of each page and therefore runs on each page load.
+// Our state is holding what we want to be using in ANY of our functions
 
 const state = {
   currentPage: window.location.pathname,
+  search: {
+    term: '',
+    type: '',
+    page: 1,
+    totalPages: 1,
+  },
+  api: {
+    apiKey: '9b2908a826b16e2c7df1ea12209ccc7d',
+    apiUrl: 'https://api.themoviedb.org/3/',
+  },
 };
 
 async function testAPIKey() {
@@ -261,6 +272,25 @@ function displayBackgroundImage(type, backgroundPath) {
   }
 }
 
+// Search Movies/Shows
+async function search() {
+  // Getting data from URL
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+
+  // Use names from search.html to pass to state for conditionals
+  state.search.type = urlParams.get('type');
+  state.search.term = urlParams.get('search-term');
+
+  if (state.search.term !== '' && state.search.term !== null) {
+    // @todo - make request and display results
+    const results = await searchAPIData();
+    console.log(results);
+  } else {
+    showAlert('Please enter a search term');
+  }
+}
+
 // Display Slider Movies
 async function displaySlider() {
   const { results } = await fetchAPIData('movie/now_playing');
@@ -313,13 +343,31 @@ function initSwiper() {
 // Fetch data from TMDB API
 // NOTE: FOR PRODUCTION--> create own backend server and make the request to THAT server where API Key is stored, then request from there to TMDB DB
 async function fetchAPIData(endpoint) {
-  const API_KEY = '9b2908a826b16e2c7df1ea12209ccc7d';
-  const API_URL = 'https://api.themoviedb.org/3/';
+  const API_KEY = state.api.apiKey;
+  const API_URL = state.api.apiUrl;
 
   showSpinner();
 
   const response = await fetch(
     `${API_URL}${endpoint}?api_key=${API_KEY}&language=en-US`
+  );
+
+  const data = await response.json();
+
+  hideSpinner();
+
+  return data;
+}
+
+// Make request to search API Data
+async function searchAPIData() {
+  const API_KEY = state.api.apiKey;
+  const API_URL = state.api.apiUrl;
+
+  showSpinner();
+
+  const response = await fetch(
+    `${API_URL}search/${state.search.type}?api_key=${API_KEY}&language=en-US&query=${state.search.term}`
   );
 
   const data = await response.json();
@@ -346,6 +394,16 @@ function highlightActiveLink() {
       link.classList.add('active');
     }
   });
+}
+
+// Show Alert
+function showAlert(message, className) {
+  const alertEl = document.createElement('div');
+  alertEl.classList.add('alert', className);
+  alertEl.appendChild(document.createTextNode(message));
+  document.querySelector('#alert').appendChild(alertEl);
+
+  setTimeout(() => alertEl.remove(), 3000);
 }
 
 function addCommasToNumber(number) {
@@ -375,7 +433,8 @@ function init() {
       displayShowDetails();
       break;
     case '/search.html':
-      console.log('Search');
+      // console.log('Search');
+      search();
       break;
   }
 
