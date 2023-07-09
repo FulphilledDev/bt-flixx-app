@@ -40,12 +40,11 @@ async function displayPopularMovies() {
     const movieDiv = document.createElement('div');
     movieDiv.classList.add('card');
     movieDiv.innerHTML = `
-     
           <a href="movie-details.html?id=${movie.id}">
             ${
               movie.poster_path
                 ? `<img
-            src="https://image/tmdb.org/t/p/w500${movie.poster_path}"
+            src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
             class="card-img-top"
             alt="${movie.title}"
           />`
@@ -57,7 +56,7 @@ async function displayPopularMovies() {
             }
           </a>
           <div class="card-body">
-            <h5 class="card-title"${movie.title}</h5>
+            <h5 class="card-title">${movie.title}</h5>
             <p class="card-text">
               <small class="text-muted">Release: ${movie.release_date}</small>
             </p>
@@ -284,11 +283,59 @@ async function search() {
 
   if (state.search.term !== '' && state.search.term !== null) {
     // @todo - make request and display results
-    const results = await searchAPIData();
-    console.log(results);
+    const { results, total_pages, page } = await searchAPIData();
+
+    if (results.length === 0) {
+      showAlert('No results found');
+      return;
+    }
+
+    displaySearchResults(results);
+
+    document.querySelector('#search-term').value = '';
   } else {
     showAlert('Please enter a search term');
   }
+}
+
+// Display search results
+function displaySearchResults(results) {
+  results.forEach((result) => {
+    const div = document.createElement('div');
+    div.classList.add('card');
+    div.innerHTML = `
+     
+          <a href="${state.search.type}-details.html?id=${result.id}">
+            ${
+              result.poster_path
+                ? `<img
+            src="https://image.tmdb.org/t/p/w500${result.poster_path}"
+            class="card-img-top"
+            alt="${state.search.type === 'movie' ? result.title : result.name}"
+          />`
+                : `<img
+          src="../images/no-image.jpg"
+          class="card-img-top"
+          alt="${state.search.type === 'movie' ? result.title : result.name}"
+        />`
+            }
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">${
+              state.search.type === 'movie' ? result.title : result.name
+            }</h5>
+            <p class="card-text">
+              <small class="text-muted">Release: ${
+                state.search.type === 'movie'
+                  ? result.release_date
+                  : result.first_air_date
+              }</small>
+            </p>
+          </div>
+        `;
+
+    document.querySelector('#search-results').appendChild(div);
+  });
 }
 
 // Display Slider Movies
@@ -397,7 +444,7 @@ function highlightActiveLink() {
 }
 
 // Show Alert
-function showAlert(message, className) {
+function showAlert(message, className = 'error') {
   const alertEl = document.createElement('div');
   alertEl.classList.add('alert', className);
   alertEl.appendChild(document.createTextNode(message));
