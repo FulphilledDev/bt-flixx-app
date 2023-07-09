@@ -8,6 +8,7 @@ const state = {
     type: '',
     page: 1,
     totalPages: 1,
+    totalResults: 0,
   },
   api: {
     apiKey: '9b2908a826b16e2c7df1ea12209ccc7d',
@@ -283,7 +284,11 @@ async function search() {
 
   if (state.search.term !== '' && state.search.term !== null) {
     // @todo - make request and display results
-    const { results, total_pages, page } = await searchAPIData();
+    const { results, total_pages, page, total_results } = await searchAPIData();
+
+    state.search.page = page;
+    state.search.totalPages = total_pages;
+    state.search.totalResults = total_results;
 
     if (results.length === 0) {
       showAlert('No results found');
@@ -300,6 +305,11 @@ async function search() {
 
 // Display search results
 function displaySearchResults(results) {
+  // Clear previous results
+  document.querySelector('#search-results').innerHTML = '';
+  document.querySelector('#search-results-heading').innerHTML = '';
+  document.querySelector('#pagination').innerHTML = '';
+
   results.forEach((result) => {
     const div = document.createElement('div');
     div.classList.add('card');
@@ -333,8 +343,52 @@ function displaySearchResults(results) {
             </p>
           </div>
         `;
+    document.querySelector('#search-results-heading').innerHTML = `
+              <h2>${results.length} of ${state.search.totalResults} results for ${state.search.term}</h2>
+    `;
 
     document.querySelector('#search-results').appendChild(div);
+  });
+
+  displayPagination();
+}
+
+// Create & Display Pagination for search
+function displayPagination() {
+  const div = document.createElement('div');
+  div.classList.add('pagination');
+  div.innerHTML = `
+  <div class="pagination">
+    <button class="btn btn-primary" id="prev">Prev</button>
+    <button class="btn btn-primary" id="next">Next</button>
+    <div class="page-counter">Page ${state.search.page} of ${state.search.totalPages}</div>
+  </div>
+  `;
+
+  document.querySelector('#pagination').appendChild(div);
+
+  // Disable prev button if on first page
+  if (state.search.page === 1) {
+    document.querySelector('#prev').disabled = true;
+  }
+
+  // Disable next button if on last page
+  if (state.search.page === state.search.totalPages) {
+    document.querySelector('#next').disabled = true;
+  }
+
+  // Next page
+  document.querySelector('#next').addEventListener('click', async () => {
+    state.search.page++;
+    const { results, total_pages } = await searchAPIData();
+    displaySearchResults(results);
+  });
+
+  // Previous page
+  document.querySelector('#prev').addEventListener('click', async () => {
+    state.search.page--;
+    const { results, total_pages } = await searchAPIData();
+    displaySearchResults(results);
   });
 }
 
@@ -414,7 +468,7 @@ async function searchAPIData() {
   showSpinner();
 
   const response = await fetch(
-    `${API_URL}search/${state.search.type}?api_key=${API_KEY}&language=en-US&query=${state.search.term}`
+    `${API_URL}search/${state.search.type}?api_key=${API_KEY}&language=en-US&query=${state.search.term}&page=${state.search.page}`
   );
 
   const data = await response.json();
